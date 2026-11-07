@@ -1,6 +1,5 @@
 """Student model and input validation for New Horizon Result Management."""
 from datetime import datetime
-import re
 
 
 class Student:
@@ -34,8 +33,11 @@ def validate_student(student_id, full_name, class_form, gender, date_of_birth):
     if not all(value.strip() for value in
                (student_id, full_name, class_form, gender, date_of_birth)):
         return "Please complete every student field."
-    if not re.fullmatch(r"[A-Za-z0-9_-]{2,20}", student_id.strip()):
-        return "Student ID must be 2–20 letters, numbers, hyphens or underscores."
+    # Schools commonly use formats such as NH/2025/001, so allow separators
+    # beyond hyphens and underscores while rejecting control characters.
+    clean_id = student_id.strip()
+    if len(clean_id) > 40 or any(ord(character) < 32 for character in clean_id):
+        return "Student ID must be 40 characters or fewer and contain no control characters."
     if len(full_name.strip()) < 2:
         return "Enter a full name with at least two characters."
     if gender not in ("Female", "Male", "Other"):
